@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tableau de Bord Stagiaire - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" title="Paramètres" onclick="window.location.href='settings-intern.html'">⚙️</button>
+      <button class="btn danger small" title="Déconnexion" id="logout-btn">⎋</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Tableau de Bord Stagiaire</h1>
+      <p class="subtitle">Bienvenue sur votre espace personnel de stage</p>
+    </section>
+    
+    <section class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-number" id="days-completed">0</div>
+        <div class="stat-label">Jours Complétés</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-number" id="days-remaining">0</div>
+        <div class="stat-label">Jours Restants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-number" id="reports-submitted">0</div>
+        <div class="stat-label">Rapports Soumis</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-number" id="completion-percentage">0%</div>
+        <div class="stat-label">Achèvement</div>
+      </div>
+    </section>
+    
+    <section class="actions-grid">
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📋</div>
+          <h3>Mon Stage</h3>
+        </div>
+        <p>Consultez les détails et le planning de votre stage</p>
+        <div class="card-actions">
+          <button class="btn outline" id="view-internship-btn">Voir détails</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📝</div>
+          <h3>Rapports</h3>
+        </div>
+        <p>Soumettez et consultez vos rapports de stage</p>
+        <div class="card-actions">
+          <button class="btn outline" id="view-reports-btn">Voir tous</button>
+          <button class="btn primary" id="submit-report-btn">Soumettre</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">👨‍🏫</div>
+          <h3>Mon Superviseur</h3>
+        </div>
+        <p>Contactez votre superviseur de stage</p>
+        <div class="card-actions">
+          <button class="btn outline" id="contact-supervisor-btn">Contacter</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📋</div>
+          <h3>Attestation</h3>
+        </div>
+        <p>Demandez votre attestation de stage (disponible à la fin du stage)</p>
+        <div class="card-actions">
+          <button class="btn outline" id="request-attestation-btn">Demander</button>
+        </div>
+      </article>
+    </section>
+    
+    <section class="upcoming-deadlines">
+      <h3>Prochaines Échéances</h3>
+      <div class="deadlines-list" id="deadlines-list">
+        <div class="deadline-item">
+          <div class="deadline-date">Chargement des échéances...</div>
+          <div class="deadline-text"></div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="stage-progression">
+      <h3>Progression de Stage</h3>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-dates">
+          <span id="start-date">Date de début</span>
+          <span id="end-date">Date de fin</span>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div id="popup-overlay" class="popup hidden">
+    <div class="popup-panel">
+      <button class="popup-close" onclick="closePopup()">&times;</button>
+      <div id="popup-body"></div>
+    </div>
+  </div>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // No theme initialization
+      
+      // Check authentication
+      checkAuthentication('intern');
+      
+      // Set up logout button
+      document.getElementById('logout-btn').addEventListener('click', logout);
+      
+      // Set up buttons
+      document.getElementById('view-internship-btn').addEventListener('click', function() {
+        openPopup('internship');
+      });
+      
+      document.getElementById('view-reports-btn').addEventListener('click', function() {
+        alert('Fonctionnalité à venir: Liste des rapports');
+      });
+      
+      document.getElementById('submit-report-btn').addEventListener('click', function() {
+        openPopup('submit-report');
+      });
+      
+      document.getElementById('contact-supervisor-btn').addEventListener('click', function() {
+        openPopup('contact-supervisor');
+      });
+      
+      document.getElementById('request-attestation-btn').addEventListener('click', function() {
+        openPopup('request-attestation');
+      });
+      
+      // Load intern data
+      loadInternData();
+    });
+    
+    // Check if user is authenticated and has correct role
+    function checkAuthentication(requiredRole) {
+      // Add protection against redirect loops
+      const redirectAttempt = sessionStorage.getItem('dashboardRedirectAttempt');
+      const now = new Date().getTime();
+      
+      // If we've tried to redirect recently (within last 2 seconds), don't try again
+      if (redirectAttempt && (now - parseInt(redirectAttempt)) < 2000) {
+        console.log('Preventing dashboard redirect loop');
+        sessionStorage.removeItem('dashboardRedirectAttempt'); // Clear for next attempt
+        return; // Stop execution and don't attempt redirect
+      }
+      
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'check_session'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          // Not logged in, redirect to login page
+          window.location.href = '../index.html';
+          return;
+        }
+        
+        if (data.user_type !== requiredRole) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          // Wrong user type, redirect to appropriate dashboard
+          switch(data.user_type) {
+            case 'admin':
+              window.location.href = 'admin-dashboard.html';
+              break;
+            case 'supervisor':
+              window.location.href = 'supervisor-dashboard.html';
+              break;
+            case 'director':
+              window.location.href = 'director-dashboard.html';
+              break;
+          }
+          return;
+        }
+        
+        // User is authenticated and has correct role
+        document.getElementById('user-name').textContent = data.full_name;
+        // Onboarding limitation removed
+      })
+      .catch(error => {
+        console.error('Authentication check error:', error);
+        // Don't redirect on error to prevent loops
+        // window.location.href = '../index.html';
+      });
+    }
+    
+    // Logout function
+    function logout() {
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'logout'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.href = '../index.html';
+      })
+      .catch(error => {
+        console.error('Logout error:', error);
+        window.location.href = '../index.html';
+      });
+    }
+    
+    // Load intern data
+    function loadInternData() {
+      // Mock data for demo
+      const internship = {
+        start_date: '2025-06-01',
+        end_date: '2025-08-31',
+        department: 'Informatique',
+        supervisor: 'Samira Ben Salah',
+        status: 'active'
+      };
+      
+      // Update stats
+      updateInternshipStats(internship);
+      
+      // Update deadlines
+      updateDeadlines(internship);
+    }
+    
+    // Update internship statistics
+    function updateInternshipStats(internship) {
+      const startDate = new Date(internship.start_date);
+      const endDate = new Date(internship.end_date);
+      const today = new Date();
+      
+      // Calculate days completed
+      const daysCompleted = Math.max(0, Math.floor((today - startDate) / (24 * 60 * 60 * 1000)));
+      document.getElementById('days-completed').textContent = daysCompleted;
+      
+      // Calculate days remaining
+      const daysRemaining = Math.max(0, Math.floor((endDate - today) / (24 * 60 * 60 * 1000)));
+      document.getElementById('days-remaining').textContent = daysRemaining;
+      
+      // Calculate completion percentage
+      const totalDays = Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000));
+      let completionPercentage = Math.min(100, Math.floor((daysCompleted / totalDays) * 100));
+      document.getElementById('completion-percentage').textContent = `${completionPercentage}%`;
+      
+      // Update progress bar
+      document.getElementById('progress-fill').style.width = `${completionPercentage}%`;
+      document.getElementById('start-date').textContent = formatDate(startDate);
+      document.getElementById('end-date').textContent = formatDate(endDate);
+      
+      // Mock reports submitted
+      document.getElementById('reports-submitted').textContent = '2';
+    }
+    
+    // Update deadlines section
+    function updateDeadlines(internship) {
+      const deadlinesList = document.getElementById('deadlines-list');
+      deadlinesList.innerHTML = '';
+      
+      // Mock deadlines
+      const startDate = new Date(internship.start_date);
+      const endDate = new Date(internship.end_date);
+      
+      // Midway report
+      const midwayDate = new Date(startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2);
+      
+      // Weekly report (next Friday)
+      const today = new Date();
+      const nextFriday = new Date(today);
+      nextFriday.setDate(today.getDate() + (5 - today.getDay() + 7) % 7);
+      
+      // Final report
+      const finalReportDate = new Date(endDate);
+      finalReportDate.setDate(endDate.getDate() - 7);
+      
+      // Add deadlines to the list
+      const deadlines = [
+        { date: nextFriday, text: 'Rapport Hebdomadaire' },
+        { date: midwayDate, text: 'Rapport de Mi-Stage' },
+        { date: finalReportDate, text: 'Rapport Final' },
+        { date: endDate, text: 'Fin de Stage' }
+      ];
+      
+      // Sort deadlines by date (nearest first)
+      deadlines.sort((a, b) => a.date - b.date);
+      
+      // Filter future deadlines
+      const futureDeadlines = deadlines.filter(d => d.date > today);
+      
+      if (futureDeadlines.length === 0) {
+        deadlinesList.innerHTML = `
+          <div class="deadline-item">
+            <div class="deadline-date">-</div>
+            <div class="deadline-text">Aucune échéance à venir</div>
+          </div>
+        `;
+        return;
+      }
+      
+      // Show the 3 nearest deadlines
+      futureDeadlines.slice(0, 3).forEach(deadline => {
+        deadlinesList.innerHTML += `
+          <div class="deadline-item">
+            <div class="deadline-date">${formatDate(deadline.date)}</div>
+            <div class="deadline-text">${deadline.text}</div>
+          </div>
+        `;
+      });
+    }
+    
+    // Format date
+    function formatDate(date) {
+      return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    
+    // Open popup
+    function openPopup(type) {
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+      
+      if (type === 'internship') {
+        // Mock internship data
+        const internship = {
+          start_date: '01/06/2025',
+          end_date: '31/08/2025',
+          department: 'Informatique',
+          supervisor: 'Samira Ben Salah',
+          status: 'active',
+          tasks: [
+            'Développement d\'applications web',
+            'Maintenance des systèmes informatiques',
+            'Analyse des besoins utilisateurs',
+            'Documentation technique'
+          ]
+        };
+        
+        body.innerHTML = `
+          <h2>Détails de mon Stage</h2>
+          <div class="internship-details">
+            <div class="detail-row">
+              <div class="detail-label">Département:</div>
+              <div class="detail-value">${internship.department}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Superviseur:</div>
+              <div class="detail-value">${internship.supervisor}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Période:</div>
+              <div class="detail-value">${internship.start_date} - ${internship.end_date}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Statut:</div>
+              <div class="detail-value"><span class="status-tag active">En cours</span></div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Tâches:</div>
+              <div class="detail-value">
+                <ul>
+                  ${internship.tasks.map(task => `<li>${task}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn outline" onclick="closePopup()">Fermer</button>
+          </div>
+        `;
+      }
+      
+      else if (type === 'submit-report') {
+        body.innerHTML = `
+          <h2>Soumettre un Rapport</h2>
+          <form id="report-form">
+            <div class="form-field">
+              <label>Type de rapport</label>
+              <select id="report-type" required>
+                <option value="">-- Sélectionner --</option>
+                <option value="weekly">Rapport Hebdomadaire</option>
+                <option value="midway">Rapport de Mi-Stage</option>
+                <option value="final">Rapport Final</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Titre</label>
+              <input type="text" id="report-title" required placeholder="Titre de votre rapport">
+            </div>
+            <div class="form-field">
+              <label>Fichier</label>
+              <input type="file" id="report-file" accept=".pdf,.doc,.docx">
+            </div>
+            <div class="form-field">
+              <label>Commentaires</label>
+              <textarea id="report-comments" rows="4" placeholder="Ajoutez des commentaires ou des notes pour votre superviseur"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+              <button type="button" class="btn primary" id="submit-report-form">Soumettre</button>
+            </div>
+          </form>
+        `;
+        
+        document.getElementById('submit-report-form').addEventListener('click', function() {
+          alert('Rapport soumis avec succès (fonctionnalité simulée)');
+          closePopup();
+        });
+      }
+      
+      else if (type === 'contact-supervisor') {
+        body.innerHTML = `
+          <h2>Contacter mon Superviseur</h2>
+          <div class="supervisor-info">
+            <div class="supervisor-name">Samira Ben Salah</div>
+            <div class="supervisor-details">Département Informatique</div>
+            <div class="supervisor-contacts">
+              <div><strong>Email:</strong> samira.bensalah@steg.tn</div>
+              <div><strong>Téléphone:</strong> +216 71 123 456</div>
+            </div>
+          </div>
+          <form id="contact-form">
+            <div class="form-field">
+              <label>Sujet</label>
+              <input type="text" id="contact-subject" required placeholder="Sujet de votre message">
+            </div>
+            <div class="form-field">
+              <label>Message</label>
+              <textarea id="contact-message" rows="6" required placeholder="Votre message"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+              <button type="button" class="btn primary" id="send-message">Envoyer</button>
+            </div>
+          </form>
+        `;
+        
+        document.getElementById('send-message').addEventListener('click', function() {
+          alert('Message envoyé à votre superviseur (fonctionnalité simulée)');
+          closePopup();
+        });
+      }
+      
+      else if (type === 'request-attestation') {
+        // Check if internship is completed
+        const today = new Date();
+        const endDate = new Date('2025-08-31');
+        
+        if (today < endDate) {
+          body.innerHTML = `
+            <h2>Demander une Attestation</h2>
+            <p>Vous ne pouvez pas demander d'attestation avant la fin de votre stage.</p>
+            <p>Date de fin de stage: 31/08/2025</p>
+            <div class="form-actions">
+              <button type="button" class="btn outline" onclick="closePopup()">Fermer</button>
+            </div>
+          `;
+        } else {
+          body.innerHTML = `
+            <h2>Demander une Attestation</h2>
+            <p>Votre stage est terminé. Vous pouvez maintenant demander votre attestation.</p>
+            <form id="attestation-form">
+              <div class="form-field">
+                <label>Commentaires (optionnel)</label>
+                <textarea id="attestation-comments" rows="4" placeholder="Informations supplémentaires pour votre attestation"></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+                <button type="button" class="btn primary" id="request-attestation-form">Demander</button>
+              </div>
+            </form>
+          `;
+          
+          document.getElementById('request-attestation-form').addEventListener('click', function() {
+            alert('Demande d\'attestation envoyée (fonctionnalité simulée)');
+            closePopup();
+          });
+        }
+      }
+      
+      document.getElementById('popup-overlay').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

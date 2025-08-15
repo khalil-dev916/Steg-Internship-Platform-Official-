@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Tableau de Bord Analytique - STEG</title>
+	<link rel="stylesheet" href="../assets/css/styles.css">
+	<script src="../assets/js/common.js"></script>
+	<script src="analytics.js" defer></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	</head>
+<body>
+	<header class="topbar">
+		<div class="brand">
+			<img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+			STEG - Analytique
+		</div>
+		<div class="top-actions">
+			<button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+		</div>
+	</header>
+	<div class="admin-page">
+		<section class="page-header">
+			<h1>Indicateurs Clés</h1>
+			<p class="subtitle">Aperçu des statistiques du programme de stage</p>
+		</section>
+		<section class="stats-row">
+			<div class="stat-card"><div class="stat-icon">📈</div><div class="stat-number" id="stat-total">0</div><div class="stat-label">Stagiaires Totaux</div></div>
+			<div class="stat-card"><div class="stat-icon">✅</div><div class="stat-number" id="stat-completed">0</div><div class="stat-label">Stages Terminés</div></div>
+			<div class="stat-card"><div class="stat-icon">📄</div><div class="stat-number" id="stat-reports">0</div><div class="stat-label">Rapports</div></div>
+		</section>
+		<section class="stats-section">
+			<h3>Répartition par Département</h3>
+			<div class="chart-container"><canvas id="deptChart" width="400" height="200"></canvas></div>
+		</section>
+	</div>
+</body>
+</html>
