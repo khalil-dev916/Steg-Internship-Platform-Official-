@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Départements - STEG</title>
+	<link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+	<header class="topbar">
+		<div class="brand">
+			<img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+			STEG - Gestion Stagiaires
+		</div>
+		<div class="top-actions">
+			<button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+			<button class="btn primary small" onclick="openPopup('department')">+ Ajouter</button>
+		</div>
+	</header>
+
+	<div class="admin-page">
+		<section class="page-header">
+			<h1>Départements</h1>
+			<p class="subtitle">Gérez les départements et leurs spécialités</p>
+		</section>
+
+		<section>
+			<table class="data-table" data-enhanced data-page-size="10">
+				<thead>
+					<tr>
+						<th>Nom</th>
+						<th>Description</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody id="dept-tbody">
+					<tr>
+						<td>Informatique</td>
+						<td>Systèmes d'information et infrastructure</td>
+						<td>
+							<button class="btn small outline" onclick="editRow(this)">Modifier</button>
+							<button class="btn small danger" onclick="removeRow(this)">Supprimer</button>
+						</td>
+					</tr>
+					<tr>
+						<td>Finance</td>
+						<td>Comptabilité et gestion financière</td>
+						<td>
+							<button class="btn small outline" onclick="editRow(this)">Modifier</button>
+							<button class="btn small danger" onclick="removeRow(this)">Supprimer</button>
+						</td>
+					</tr>
+					<tr>
+						<td>Ressources Humaines</td>
+						<td>Gestion du personnel et recrutement</td>
+						<td>
+							<button class="btn small outline" onclick="editRow(this)">Modifier</button>
+							<button class="btn small danger" onclick="removeRow(this)">Supprimer</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+	</div>
+
+	<div id="popup-overlay" class="popup hidden">
+		<div class="popup-panel">
+			<button class="popup-close" onclick="closePopup()">&times;</button>
+			<div id="popup-body"></div>
+		</div>
+	</div>
+
+	<script src="../assets/js/common.js"></script>
+	<script src="../assets/js/table-utils.js"></script>
+	<script>
+		function openPopup(type, row) {
+			const body = document.getElementById('popup-body');
+			body.innerHTML = '';
+
+			if (type === 'department' || type === 'edit') {
+				const isEdit = type === 'edit';
+				const title = isEdit ? 'Modifier un Département' : 'Ajouter un Département';
+				const name = isEdit ? row.children[0].textContent.trim() : '';
+				const desc = isEdit ? row.children[1].textContent.trim() : '';
+				body.innerHTML = `
+					<div>
+						<h2 style="margin-top:0; text-align:center;">${title}</h2>
+						<form id="deptForm" class="form-grid">
+							<div class="form-field"><label>Nom</label><input name="name" required value="${name}"></div>
+							<div class="form-field full-width"><label>Description</label><textarea name="desc" rows="3">${desc}</textarea></div>
+							<div class="form-actions">
+								<button type="submit" class="btn primary">Enregistrer</button>
+								<button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+							</div>
+						</form>
+					</div>
+				`;
+
+				document.getElementById('deptForm').addEventListener('submit', function(e){
+					e.preventDefault();
+					const form = new FormData(e.target);
+					const name = (form.get('name')||'').toString().trim();
+					const desc = (form.get('desc')||'').toString().trim();
+					if (!name) return;
+					const tbody = document.getElementById('dept-tbody');
+					if (isEdit && row) {
+						row.children[0].textContent = name;
+						row.children[1].textContent = desc;
+					} else {
+						const tr = document.createElement('tr');
+						tr.innerHTML = `
+							<td>${name}</td>
+							<td>${desc}</td>
+							<td>
+								<button class="btn small outline" onclick="editRow(this)">Modifier</button>
+								<button class="btn small danger" onclick="removeRow(this)">Supprimer</button>
+							</td>`;
+						tbody.appendChild(tr);
+					}
+					closePopup();
+					alert('Changements enregistrés (démonstration locale).');
+				});
+			}
+
+			document.getElementById('popup-overlay').classList.remove('hidden');
+		}
+
+		function editRow(btn) {
+			const row = btn.closest('tr');
+			openPopup('edit', row);
+		}
+		function removeRow(btn) {
+			const row = btn.closest('tr');
+			if (confirm('Supprimer ce département ?')) row.remove();
+		}
+	</script>
+</body>
+</html>

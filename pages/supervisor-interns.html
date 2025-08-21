@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Superviseur - Stagiaires</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Espace Superviseur
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='supervisor-dashboard.html'">Tableau de Bord</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Stagiaires Assignés</h1>
+      <p class="subtitle">Liste des stagiaires sous votre supervision</p>
+    </section>
+    <section>
+  <table class="data-table" data-enhanced data-page-size="10">
+        <thead><tr><th>Nom</th><th>Département</th><th>Période</th></tr></thead>
+        <tbody>
+          <tr><td>Firas Welhazi</td><td>Informatique</td><td>2025-06 — 2025-08</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <script src="../assets/js/table-utils.js"></script>
+</body>
+</html>

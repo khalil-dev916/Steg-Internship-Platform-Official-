@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - STEG Gestion Stagiaires</title>
+    <style>
+        /* Reset et variables */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --steg-blue: #1e3a8a;
+            --steg-light-blue: #3b82f6;
+            --steg-gold: #f59e0b;
+            --steg-green: #10b981;
+            --white: #ffffff;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --red: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Body et layout général */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--steg-blue) 0%, var(--steg-light-blue) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header avec logo STEG agrandi */
+        .header {
+            background: var(--white);
+            padding: 1.2rem 0; 
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-img {
+            height: 60px; /* Logo plus grand */
+            margin-right: 1rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--steg-blue);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-container {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-header {
+            background: var(--steg-blue);
+            color: var(--white);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .login-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .login-form {
+            padding: 2rem 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--gray-800);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--steg-light-blue);
+            outline: none;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .form-checkbox {
+            margin-right: 0.5rem;
+        }
+
+        .form-check-label {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--steg-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--steg-light-blue);
+        }
+
+        .login-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .login-link {
+            color: var(--steg-light-blue);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .login-link:hover {
+            color: var(--steg-blue);
+            text-decoration: underline;
+        }
+
+        .language-selector {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .language-label {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .language-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .language-btn {
+            padding: 0.4rem 0.8rem;
+            background-color: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .language-btn:hover {
+            background-color: var(--gray-200);
+        }
+
+        .language-btn.active {
+            background-color: var(--steg-light-blue);
+            color: var(--white);
+            border-color: var(--steg-light-blue);
+        }
+
+        .admin-accounts {
+            margin-top: 1.5rem;
+            background-color: var(--gray-100);
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .admin-accounts-title {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-account-item {
+            margin-bottom: 0.3rem;
+            color: var(--gray-600);
+        }
+
+        .admin-account-label {
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--steg-blue);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-company {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-info {
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-copyright {
+            opacity: 0.7;
+            font-size: 0.8rem;
+        }
+
+        /* Système d'alerte */
+        .alert {
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-icon {
+            margin-right: 0.6rem;
+            font-size: 1.2rem;
+        }
+
+        .alert-danger {
+            background-color: #fde8e8;
+            color: #9b1c1c;
+            border: 1px solid #f8b4b4;
+        }
+
+        .alert-success {
+            background-color: #def7ec;
+            color: #046c4e;
+            border: 1px solid #84e1bc;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .logo-img {
+                height: 40px;
+            }
+
+            .logo-text {
+                font-size: 1.2rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="/logo-steg.png" alt="Logo STEG" class="logo-img">
+                <span class="logo-text">STEG - Gestion des Stagiaires</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="login-container">
+            <div class="login-header">
+                <h1 class="login-title">Connexion</h1>
+                <p class="login-subtitle">Bienvenue dans le système de gestion des stagiaires</p>
+            </div>
+            
+            <form class="login-form">
+                <!-- Alert message (uncomment to show) -->
+                <!--
+                <div class="alert alert-danger">
+                    <span class="alert-icon">⚠️</span>
+                    <span>Email ou mot de passe incorrect.</span>
+                </div>
+                -->
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="votre.email@exemple.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="remember" class="form-checkbox">
+                    <label for="remember" class="form-check-label">Se souvenir de moi</label>
+                </div>
+                
+                <button type="button" class="btn" onclick="window.location.href='admin-dashboard.html'">Se connecter</button>
+                
+                <div class="login-footer">
+                    <a href="#" class="login-link">Mot de passe oublié ?</a>
+                    <a href="#" class="login-link">S'inscrire</a>
+                </div>
+                
+                <div class="language-selector">
+                    <p class="language-label">Langue</p>
+                    <div class="language-buttons">
+                        <button type="button" class="language-btn active">Français</button>
+                        <button type="button" class="language-btn">English</button>
+                        <button type="button" class="language-btn">العربية</button>
+                    </div>
+                </div>
+                
+                <div class="admin-accounts">
+                    <p class="admin-accounts-title">Comptes de démonstration</p>
+                    <p class="admin-account-item"><span class="admin-account-label">Admin:</span> admin@steg.tn / password</p>
+                    <p class="admin-account-item"><span class="admin-account-label">Superviseur:</span> supervisor@steg.tn / password</p>
+                    <p class="admin-account-item"><span class="admin-account-label">Stagiaire:</span> intern@steg.tn / password</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-company">STEG - Société Tunisienne de l'Électricité et du Gaz</p>
+            <p class="footer-info">Système de Gestion des Stagiaires | Version 1.0</p>
+            <p class="footer-copyright">© 2023 STEG. Tous droits réservés.</p>
+        </div>
+    </footer>
+</body>
+</html>

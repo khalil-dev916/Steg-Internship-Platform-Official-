@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Paramètres – Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><img src="../assets/images/STEG-logo.png" class="logo"> STEG – Paramètres Admin</div>
+  <div class="top-actions"><button class="btn danger small" onclick="logout()" title="Déconnexion">⎋</button></div>
+</header>
+<main class="admin-page">
+  <section class="page-header"><h1>Paramètres</h1><p class="subtitle">Gérer les rôles et permissions</p></section>
+  <section>
+    <p>(Placeholder) Gérer les utilisateurs, rôles et permissions ici.</p>
+  </section>
+</main>
+<script>
+async function logout(){try{await fetch('../database/api.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});}catch(e){}window.location.href='../index.html';}
+</script>
+</body>
+</html>
