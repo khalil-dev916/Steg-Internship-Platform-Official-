@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rapports de Stage - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <script src="../assets/js/common.js"></script>
+  <script>window.addEventListener('DOMContentLoaded', setupThemeToggle);</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+      
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Rapports de Stage</h1>
+      <p class="subtitle">Consultez les rapports terminés, avec options de tri</p>
+    </section>
+    <section class="search-filters">
+      <div class="filter-options">
+        <label for="sortBy">Trier par:</label>
+        <select id="sortBy">
+          <option value="date">Date de soumission</option>
+          <option value="department">Département</option>
+        </select>
+      </div>
+    </section>
+    <section>
+  <table class="data-table" data-enhanced data-page-size="10">
+        <thead>
+          <tr>
+            <th>Stagiaire</th>
+            <th>Département</th>
+            <th>Date de soumission</th>
+            <th>Titre</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Firas Welhazi</td>
+            <td>Informatique</td>
+            <td>2025-08-12</td>
+            <td>Rapport hebdomadaire</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tableau de Bord Directeur - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="../assets/images/STEG-logo.png" alt="Logo" class="logo"> STEG - Directeur</div>
+    <div class="top-actions">
+      <button class="btn small" title="Paramètres" onclick="window.location.href='settings-admin.html'">⚙️</button>
+      <button class="btn danger small" title="Déconnexion" onclick="logout()">⎋</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Tableau de Bord Directeur</h1>
+      <p class="subtitle">Gestion des superviseurs de mon département</p>
+    </section>
+    <section class="actions-grid">
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">👥</div>
+          <h3>Superviseurs</h3>
+        </div>
+        <p>Consultez et gérez les superviseurs affectés à votre département.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='superviseurs.html'">Voir tous</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head"><div class="action-icon">🎓</div><h3>Stagiaires</h3></div>
+        <p>Voir les stagiaires des superviseurs de votre département.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='interns.html'">Liste</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head"><div class="action-icon">📊</div><h3>Analytique</h3></div>
+        <p>Statistiques par département.</p>
+        <div class="card-actions"><button class="btn outline" onclick="window.location.href='analytics-dashboard.html'">Ouvrir</button></div>
+      </article>
+    </section>
+  </div>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=>{ authDirector(); });
+    function authDirector(){
+      // Add protection against redirect loops
+      const redirectAttempt = sessionStorage.getItem('dashboardRedirectAttempt');
+      const now = new Date().getTime();
+      
+      // If we've tried to redirect recently (within last 2 seconds), don't try again
+      if (redirectAttempt && (now - parseInt(redirectAttempt)) < 2000) {
+        console.log('Preventing dashboard redirect loop');
+        sessionStorage.removeItem('dashboardRedirectAttempt'); // Clear for next attempt
+        return; // Stop execution and don't attempt redirect
+      }
+      
+      fetch('../database/api.php',{
+        method:'POST', 
+        headers:{'Content-Type':'application/json'}, 
+        body: JSON.stringify({action:'check_session'})
+      })
+      .then(response => response.json())
+      .then(data => { 
+        if(!data.success) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          window.location.href='../index.html';
+          return;
+        }
+        if(data.user_type !== 'director'){
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          switch(data.user_type) {
+            case 'admin':
+              window.location.href='admin-dashboard.html';
+              break;
+            case 'supervisor':
+              window.location.href='supervisor-dashboard.html';
+              break;
+            case 'intern':
+              window.location.href='intern-dashboard.html';
+              break;
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Authentication error:', error);
+        window.location.href = '../index.html';
+      });
+    }
+    function logout(){fetch('../database/api.php',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'logout'})}).finally(()=>window.location.href='../index.html');}
+  </script>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attestations de Stage - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <!-- Include jsPDF library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Include Chart.js for statistics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+      
+      <button class="btn primary small" onclick="openPopup('attestation')">+ Nouvelle Attestation</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Attestations de Stage</h1>
+      <p class="subtitle">Générez et gérez les attestations pour les stagiaires</p>
+    </section>
+    
+    <section class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-number" id="total-attestations">3</div>
+        <div class="stat-label">Attestations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-number" id="current-month">2</div>
+        <div class="stat-label">Ce Mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📧</div>
+        <div class="stat-number" id="emails-sent">0</div>
+        <div class="stat-label">Emails Envoyés</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📥</div>
+        <div class="stat-number" id="downloads">0</div>
+        <div class="stat-label">Téléchargements</div>
+      </div>
+    </section>
+    
+    <section class="search-filters">
+      <div class="search-box">
+        <input type="text" id="search-attestations" placeholder="Rechercher un stagiaire..." onkeyup="filterAttestations()">
+        <button class="btn small" onclick="filterAttestations()">🔍</button>
+      </div>
+      <div class="filter-options">
+        <label>Département:</label>
+        <select id="filter-department" onchange="filterAttestations()">
+          <option value="">Tous</option>
+          <option value="Informatique">Informatique</option>
+          <option value="Finance">Finance</option>
+          <option value="RH">Ressources Humaines</option>
+        </select>
+        
+        <label>Période:</label>
+        <select id="filter-period" onchange="filterAttestations()">
+          <option value="">Toutes</option>
+          <option value="2025-06">Juin 2025</option>
+          <option value="2025-07">Juillet 2025</option>
+          <option value="2025-08">Août 2025</option>
+        </select>
+      </div>
+    </section>
+    
+    <section>
+  <table class="data-table" data-enhanced data-page-size="10">
+        <thead>
+          <tr style="background:var(--steg-blue);color:#fff;">
+            <th>Nom du Stagiaire</th>
+            <th>Département</th>
+            <th>Période de Stage</th>
+            <th>Date de Génération</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="attestations-list">
+          <!-- Demo rows -->
+          <tr>
+            <td>Firas Welhazi</td>
+            <td>Informatique</td>
+            <td>Juin - Août 2025</td>
+            <td>10/08/2025</td>
+            <td>
+              <button class="btn outline small" onclick="viewAttestation(this)">Voir</button>
+              <button class="btn primary small" onclick="downloadAttestation(this)">Télécharger</button>
+              <button class="btn small" onclick="emailAttestation(this)" title="Envoyer par email">✉️</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Samira Khedher</td>
+            <td>Ressources Humaines</td>
+            <td>Juillet - Septembre 2025</td>
+            <td>09/08/2025</td>
+            <td>
+              <button class="btn outline small" onclick="viewAttestation(this)">Voir</button>
+              <button class="btn primary small" onclick="downloadAttestation(this)">Télécharger</button>
+              <button class="btn small" onclick="emailAttestation(this)" title="Envoyer par email">✉️</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Ahmed Ben Salah</td>
+            <td>Finance</td>
+            <td>Mai - Juillet 2025</td>
+            <td>05/08/2025</td>
+            <td>
+              <button class="btn outline small" onclick="viewAttestation(this)">Voir</button>
+              <button class="btn primary small" onclick="downloadAttestation(this)">Télécharger</button>
+              <button class="btn small" onclick="emailAttestation(this)" title="Envoyer par email">✉️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    
+    <!-- Statistics Section -->
+    <section class="stats-section">
+      <h3>Statistiques des Attestations</h3>
+      <div class="chart-container">
+        <canvas id="departmentChart" width="400" height="200"></canvas>
+      </div>
+    </section>
+  </div>
+  <div id="popup-overlay" class="popup hidden">
+    <div class="popup-panel">
+      <button class="popup-close" onclick="closePopup()">&times;</button>
+      <div id="popup-body"></div>
+    </div>
+  </div>
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/table-utils.js"></script>
+  <script>
+    // Filtering function
+    function filterAttestations() {
+      const searchInput = document.getElementById('search-attestations').value.toLowerCase();
+      const departmentFilter = document.getElementById('filter-department').value.toLowerCase();
+      const periodFilter = document.getElementById('filter-period').value.toLowerCase();
+      
+      const rows = document.querySelectorAll('#attestations-list tr');
+      
+      rows.forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        const department = row.cells[1].textContent.toLowerCase();
+        const period = row.cells[2].textContent.toLowerCase();
+        
+        const matchesSearch = name.includes(searchInput);
+        const matchesDepartment = !departmentFilter || department.includes(departmentFilter);
+        const matchesPeriod = !periodFilter || period.includes(periodFilter);
+        
+        if (matchesSearch && matchesDepartment && matchesPeriod) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+    
+    // Attestation specific functions
+    function openPopup(type, row) {
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+      
+      if (type === 'attestation') {
+        // Mock data for the demo - in a real app, this would come from a database
+        const eligibleInterns = [
+          { name: 'Firas Welhazi', gender: 'M', department: 'Informatique', period: 'Juin - Août 2025' },
+          { name: 'Samira Khedher', gender: 'F', department: 'Ressources Humaines', period: 'Juillet - Septembre 2025' },
+          { name: 'Ahmed Ben Salah', gender: 'M', department: 'Finance', period: 'Mai - Juillet 2025' }
+        ];
+        
+        body.innerHTML = `
+          <h2>Générer une Attestation de Stage</h2>
+          <form id="generateAttestationForm" class="form-grid">
+            <div class="form-field">
+              <label>Stagiaire</label>
+              <select name="internName" id="internSelect" required>
+                <option value="">Sélectionner un stagiaire</option>
+                ${eligibleInterns.map(intern => `<option value="${intern.name}">${intern.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Contenu de l'Attestation</label>
+              <textarea id="attestationContent" rows="12" readonly></textarea>
+            </div>
+            <div class="form-actions justify-between">
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+              <button type="button" id="downloadAttestationBtn" class="btn primary" disabled>Télécharger</button>
+            </div>
+          </form>
+        `;
+        
+        const select = document.getElementById('internSelect');
+        const downloadBtn = document.getElementById('downloadAttestationBtn');
+        
+        select.addEventListener('change', function() {
+          const intern = eligibleInterns.find(i => i.name === select.value);
+          if (intern) {
+            // Set the appropriate pronoun based on gender
+            const civ = intern.gender === 'M' ? 'M.' : 'Mlle/Mme';
+            const interesse = intern.gender === 'M' ? 'l\'intéressé' : 'l\'intéressée';
+            
+            const text = `
+Objet : Attestation de Stage
+
+À qui de droit,
+
+Par la présente, nous, soussignés la Société Tunisienne de l'Électricité et du Gaz (STEG), attestons que :
+
+${civ} ${intern.name} a effectué avec succès un stage pratique au sein de notre établissement, dans le département ${intern.department}, durant la période ${intern.period}.
+
+Au cours de cette période, ${interesse} a fait preuve de sérieux, d'assiduité et d'un grand sens des responsabilités dans l'accomplissement des tâches qui lui ont été confiées.
+
+Cette attestation est délivrée à ${interesse} pour servir et valoir ce que de droit.
+
+Cordialement,
+[Nom du Superviseur]
+Département ${intern.department}
+STEG - Société Tunisienne de l'Électricité et du Gaz`;
+            
+            document.getElementById('attestationContent').value = text;
+            downloadBtn.disabled = false;
+          } else {
+            document.getElementById('attestationContent').value = '';
+            downloadBtn.disabled = true;
+          }
+        });
+        
+        downloadBtn.addEventListener('click', function() {
+          const intern = eligibleInterns.find(i => i.name === select.value);
+          if (intern) {
+            alert(`Attestation pour ${intern.name} téléchargée avec succès! (Demo)`);
+            
+            // In a real implementation, this would generate a PDF and trigger download
+            // We would add a new row to the attestations list
+            const tbody = document.getElementById('attestations-list');
+            const today = new Date().toLocaleDateString('fr-FR');
+            
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+              <td>${intern.name}</td>
+              <td>${intern.department}</td>
+              <td>${intern.period}</td>
+              <td>${today}</td>
+              <td>
+                <button class="btn outline small" onclick="viewAttestation(this)">Voir</button>
+                <button class="btn primary small" onclick="downloadAttestation(this)">Télécharger</button>
+                <button class="btn small" onclick="emailAttestation(this)" title="Envoyer par email">✉️</button>
+              </td>
+            `;
+            
+            tbody.appendChild(newRow);
+            closePopup();
+          }
+        });
+      } else if (type === 'view' && row) {
+        // View attestation logic
+        const tds = row.querySelectorAll('td');
+        const internName = tds[0].textContent;
+        const department = tds[1].textContent;
+        const period = tds[2].textContent;
+        
+        // For demo purposes - gender determination is simplified
+        const gender = internName.endsWith('a') ? 'F' : 'M';
+        const civ = gender === 'M' ? 'M.' : 'Mlle/Mme';
+        const interesse = gender === 'M' ? 'l\'intéressé' : 'l\'intéressée';
+        
+        body.innerHTML = `
+          <h2>Attestation de Stage</h2>
+          <div style="background: #fff; color: #000; padding: 20px; border: 1px solid #ddd; font-family: 'Times New Roman', serif;">
+            <p><strong>Objet : Attestation de Stage</strong></p>
+            <p>À qui de droit,</p>
+            <p>Par la présente, nous, soussignés la Société Tunisienne de l'Électricité et du Gaz (STEG), attestons que :</p>
+            <p>${civ} <strong>${internName}</strong> a effectué avec succès un stage pratique au sein de notre établissement, dans le département <strong>${department}</strong>, durant la période <strong>${period}</strong>.</p>
+            <p>Au cours de cette période, ${interesse} a fait preuve de sérieux, d'assiduité et d'un grand sens des responsabilités dans l'accomplissement des tâches qui lui ont été confiées.</p>
+            <p>Cette attestation est délivrée à ${interesse} pour servir et valoir ce que de droit.</p>
+            <p>Cordialement,<br>
+            [Nom du Superviseur]<br>
+            Département ${department}<br>
+            STEG - Société Tunisienne de l'Électricité et du Gaz</p>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn primary" onclick="downloadAttestationFromView('${internName}')">Télécharger</button>
+          </div>
+        `;
+      }
+      
+      document.getElementById('popup-overlay').classList.remove('hidden');
+    }
+    
+    // View attestation
+    function viewAttestation(btn) {
+      const row = btn.closest('tr');
+      openPopup('view', row);
+    }
+    
+    // Download attestation
+    function downloadAttestation(btn) {
+      const row = btn.closest('tr');
+      const internName = row.cells[0].textContent;
+      const department = row.cells[1].textContent;
+      const period = row.cells[2].textContent;
+      
+      // For demo purposes - gender determination is simplified
+      const gender = internName.endsWith('a') ? 'F' : 'M';
+      const civ = gender === 'M' ? 'M.' : 'Mlle/Mme';
+      const interesse = gender === 'M' ? 'l\'intéressé' : 'l\'intéressée';
+      
+      generatePDF(internName, department, period, gender);
+    }
+    
+    function downloadAttestationFromView(internName) {
+      // Get the department and period from the popup content
+      const content = document.querySelector('#popup-body div');
+      const departmentMatch = content.innerHTML.match(/département <strong>(.*?)<\/strong>/);
+      const periodMatch = content.innerHTML.match(/période <strong>(.*?)<\/strong>/);
+      const department = departmentMatch ? departmentMatch[1] : 'Informatique';
+      const period = periodMatch ? periodMatch[1] : 'Juin - Août 2025';
+      
+      // Determine gender (simplified)
+      const gender = internName.endsWith('a') ? 'F' : 'M';
+      
+      generatePDF(internName, department, period, gender);
+      closePopup();
+    }
+    
+    // Generate PDF with jsPDF
+    function generatePDF(internName, department, period, gender, autoDownload = true) {
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Set font size
+        doc.setFontSize(12);
+        
+        // Add STEG logo (would require a base64 encoded image in a real implementation)
+        // doc.addImage('logo_base64', 'JPEG', 15, 10, 40, 20);
+        
+        // Add title
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('STEG - Société Tunisienne de l\'Électricité et du Gaz', 105, 20, { align: 'center' });
+        
+        // Add current date
+        const today = new Date().toLocaleDateString('fr-FR');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Tunis, le ${today}`, 180, 30, { align: 'right' });
+        
+        // Add subject line
+        doc.setFont('helvetica', 'bold');
+        doc.text('Objet : Attestation de Stage', 20, 45);
+        
+        // Set appropriate pronouns based on gender
+        const civ = gender === 'M' ? 'M.' : 'Mlle/Mme';
+        const interesse = gender === 'M' ? 'l\'intéressé' : 'l\'intéressée';
+        
+        // Add attestation content
+        doc.setFont('helvetica', 'normal');
+        let y = 60;
+        doc.text('À qui de droit,', 20, y); y += 10;
+        
+        const line1 = 'Par la présente, nous, soussignés la Société Tunisienne de l\'Électricité et du Gaz (STEG),';
+        const line2 = 'attestons que :';
+        doc.text(line1, 20, y); y += 6;
+        doc.text(line2, 20, y); y += 15;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${civ} ${internName}`, 20, y); y += 10;
+        
+        doc.setFont('helvetica', 'normal');
+        const text1 = `a effectué avec succès un stage pratique au sein de notre établissement, dans le département`;
+        const text2 = `${department}, durant la période ${period}.`;
+        doc.text(text1, 20, y); y += 6;
+        doc.text(text2, 20, y); y += 15;
+        
+        const line3 = `Au cours de cette période, ${interesse} a fait preuve de sérieux, d'assiduité et d'un`;
+        const line4 = `grand sens des responsabilités dans l'accomplissement des tâches qui lui ont été confiées.`;
+        doc.text(line3, 20, y); y += 6;
+        doc.text(line4, 20, y); y += 15;
+        
+        const line5 = `Cette attestation est délivrée à ${interesse} pour servir et valoir ce que de droit.`;
+        doc.text(line5, 20, y); y += 20;
+        
+        doc.text('Cordialement,', 20, y); y += 15;
+        doc.text('[Nom du Superviseur]', 20, y); y += 6;
+        doc.text(`Département ${department}`, 20, y); y += 6;
+        doc.text('STEG - Société Tunisienne de l\'Électricité et du Gaz', 20, y);
+        
+        // Save the PDF if autoDownload is true
+        if (autoDownload) {
+          doc.save(`attestation_${internName.replace(/\s+/g, '_')}.pdf`);
+          
+          // Show success message
+          alert(`Attestation pour ${internName} téléchargée en format PDF!`);
+          
+          // Increment download counter
+          incrementDownloadCounter();
+        }
+        
+        // Return the PDF document for other uses
+        return doc;
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+      }
+    }
+    
+    
+    // Update statistics
+    function updateStatistics() {
+      // Count total attestations
+      const totalAttestations = document.querySelectorAll('#attestations-list tr').length;
+      document.getElementById('total-attestations').textContent = totalAttestations;
+      
+      // Count current month's attestations
+      const currentMonth = new Date().getMonth() + 1; // getMonth() is 0-indexed
+      const currentMonthAttestations = Array.from(document.querySelectorAll('#attestations-list tr')).filter(row => {
+        const dateText = row.cells[3].textContent;
+        const month = parseInt(dateText.split('/')[1]);
+        return month === currentMonth;
+      }).length;
+      document.getElementById('current-month').textContent = currentMonthAttestations;
+    }
+    
+    // Increment download counter
+    function incrementDownloadCounter() {
+      const counter = document.getElementById('downloads');
+      counter.textContent = parseInt(counter.textContent) + 1;
+    }
+    
+    // Increment email counter
+    function incrementEmailCounter() {
+      const counter = document.getElementById('emails-sent');
+      counter.textContent = parseInt(counter.textContent) + 1;
+    }
+    
+    // Initialize chart
+    function initChart() {
+      // Get departments and count attestations per department
+      const departments = {};
+      document.querySelectorAll('#attestations-list tr').forEach(row => {
+        const department = row.cells[1].textContent;
+        departments[department] = (departments[department] || 0) + 1;
+      });
+      
+      // Prepare chart data
+      const deptLabels = Object.keys(departments);
+      const deptCounts = Object.values(departments);
+      
+      // Create chart
+      const ctx = document.getElementById('departmentChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: deptLabels,
+          datasets: [{
+            label: 'Nombre d\'attestations',
+            data: deptCounts,
+            backgroundColor: [
+              'rgba(54, 162, 235, 0.7)',
+              'rgba(255, 99, 132, 0.7)',
+              'rgba(75, 192, 192, 0.7)',
+              'rgba(255, 206, 86, 0.7)',
+              'rgba(153, 102, 255, 0.7)',
+            ],
+            borderColor: [
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 99, 132, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(153, 102, 255, 1)',
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Attestations par Département',
+              color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+            },
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0,
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+              },
+              grid: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').replace(')', ', 0.1)')
+              }
+            },
+            x: {
+              ticks: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+              },
+              grid: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').replace(')', ', 0.1)')
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Initialize stats and chart only
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStatistics();
+      initChart();
+    });
+  </script>
+</body>
+</html>

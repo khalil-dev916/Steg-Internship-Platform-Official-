@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tableau de Bord Administrateur - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <!-- Include jsPDF library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" title="Paramètres" onclick="window.location.href='settings-admin.html'">⚙️</button>
+      <button class="btn danger small" title="Déconnexion" onclick="logout()">⎋</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Tableau de Bord Administrateur</h1>
+      <p class="subtitle">Gérez efficacement tous les aspects du programme de stage</p>
+    </section>
+    <section class="stats-row">
+      <div class="stat-card" onclick="window.location.href='interns.html'" title="Voir les stagiaires">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-number" id="stat-interns">1</div>
+        <div class="stat-label">Stagiaires Actifs</div>
+      </div>
+      <div class="stat-card" onclick="window.location.href='superviseurs.html'" title="Voir les superviseurs">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number" id="stat-supervisors">2</div>
+        <div class="stat-label">Superviseurs</div>
+      </div>
+  <div class="stat-card" onclick="window.location.href='rapports.html'" title="Voir les rapports soumis">
+        <div class="stat-icon">📄</div>
+        <div class="stat-number" id="stat-reports">0</div>
+        <div class="stat-label">Rapports Soumis</div>
+      </div>
+      <div class="stat-card" onclick="window.location.href='departments.html'" title="Voir les départements">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-number" id="stat-departments">6</div>
+        <div class="stat-label">Départements</div>
+      </div>
+    </section>
+    <section class="actions-grid">
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">🎓</div>
+          <h3>Gestion des Stagiaires</h3>
+        </div>
+        <p>Ajoutez de nouveaux stagiaires, consultez leurs profils et gérez leurs stages.</p>
+        <div class="card-actions">
+            <button class="btn outline" onclick="window.location.href='interns.html'">Voir tous</button>
+          <button class="btn primary" onclick="openPopup('intern')">+ Ajouter</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">👥</div>
+          <h3>Gestion des Superviseurs</h3>
+        </div>
+        <p>Gérez les comptes des encadrants, leurs permissions et départements.</p>
+        <div class="card-actions">
+            <button class="btn outline" onclick="window.location.href='superviseurs.html'">Voir tous</button>
+            <button class="btn primary" onclick="openPopup('supervisor')">+ Ajouter</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📁</div>
+          <h3>Rapports de Stage</h3>
+        </div>
+        <p>Consultez et validez les rapports soumis par les stagiaires.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='rapport.html'">Tous les rapports</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📝</div>
+          <h3>Attestations</h3>
+        </div>
+        <p>Générez les attestations de stage pour les stagiaires ayant terminé.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='attestations.html'">Voir toutes</button>
+          <button class="btn primary" onclick="openPopup('attestation')">Générer</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">🏷️</div>
+          <h3>Départements</h3>
+        </div>
+        <p>Gérez les départements et leurs spécialités.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='departments.html'">Voir tous</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">⭐</div>
+          <h3>Évaluations</h3>
+        </div>
+        <p>Consultez les évaluations et feedbacks des superviseurs.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='evaluations.html'">Voir toutes</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📊</div>
+          <h3>Analytique</h3>
+        </div>
+        <p>Statistiques globales et visualisations par département.</p>
+        <div class="card-actions">
+          <button class="btn outline" onclick="window.location.href='analytics-dashboard.html'">Ouvrir le tableau de bord</button>
+        </div>
+      </article>
+  <!-- Candidatures card removed (application feature postponed) -->
+    </section>
+    <section class="recent-activity">
+      <h3>Activité Récente</h3>
+      <div class="activity-list">
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text">
+            <strong>Nouveau stagiaire inscrit</strong>
+            <div class="muted">Firas Welhazi a été ajouté au département Informatique — il y a 3 minutes</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text">
+            <strong>Rapport soumis</strong>
+            <div class="muted">Samira B. a soumis son rapport — il y a 2 heures</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+      <div id="popup-overlay" class="popup hidden">
+        <div class="popup-panel">
+          <button class="popup-close" onclick="closePopup()">&times;</button>
+          <div id="popup-body"></div>
+        </div>
+      </div>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check authentication
+      checkAuthentication('admin');
+    });
+    
+    // Check if user is authenticated and has correct role
+    function checkAuthentication(requiredRole) {
+      // Add protection against redirect loops
+      const redirectAttempt = sessionStorage.getItem('dashboardRedirectAttempt');
+      const now = new Date().getTime();
+      
+      // If we've tried to redirect recently (within last 2 seconds), don't try again
+      if (redirectAttempt && (now - parseInt(redirectAttempt)) < 2000) {
+        console.log('Preventing dashboard redirect loop');
+        sessionStorage.removeItem('dashboardRedirectAttempt'); // Clear for next attempt
+        return; // Stop execution and don't attempt redirect
+      }
+      
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'check_session'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          // Not logged in, redirect to login page
+          window.location.href = '../index.html';
+          return;
+        }
+        
+        if (data.user_type !== requiredRole) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          // Wrong user type, redirect to appropriate dashboard
+          switch(data.user_type) {
+            case 'supervisor':
+              window.location.href = 'supervisor-dashboard.html';
+              break;
+            case 'intern':
+              window.location.href = 'intern-dashboard.html';
+              break;
+            case 'director':
+              window.location.href = 'director-dashboard.html';
+              break;
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Authentication check error:', error);
+        // Don't redirect on error to prevent loops
+        // window.location.href = '../index.html';
+      });
+    }
+    
+    function goTo(target) { alert("Aller à: " + target); }
+    
+    function openPopup(type) {
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+      
+      if (type === 'intern') {
+        body.innerHTML = `
+            <h2>Ajouter un Stagiaire</h2>
+            <form id="addInternForm" enctype="multipart/form-data" class="form-grid">
+              <div class="form-field"><label>Nom</label><input name="firstName" required></div>
+              <div class="form-field"><label>Prénom</label><input name="lastName" required></div>
+              <div class="form-field"><label>Numéro de carte d'identité</label><input name="idCard" required></div>
+              <div class="form-field"><label>Adresse</label><input name="address" required></div>
+              <div class="form-field"><label>Université / Établissement</label><input name="university" required></div>
+              <div class="form-field"><label>Email</label><input type="email" name="email" required></div>
+              <div class="form-field"><label>Téléphone</label><input name="phone" required></div>
+              <div class="form-field"><label>Date de naissance</label><input type="date" name="dob" required></div>
+              <div class="form-field"><label>Contact d'urgence</label><input name="emergencyContact" placeholder="Nom, relation, téléphone"></div>
+              <div class="form-field"><label>Nationalité</label>
+                <div id="country-select-container"></div>
+              </div>
+              <div class="form-field"><label>Genre</label>
+                <select name="gender" required>
+                  <option value="">-- Sélectionner --</option>
+                  <option value="male">Homme</option>
+                  <option value="female">Femme</option>
+                </select>
+              </div>
+              <div class="form-field"><label>Type de stage</label>
+                <select name="internshipType" required>
+                  <option value="">-- Sélectionner --</option>
+                  <option value="ete">Stage d'été</option>
+                  <option value="pfa">Stage PFA</option>
+                  <option value="pfe">Stage PFE</option>
+                </select>
+              </div>
+              <div class="form-field"><label>Début du stage</label><input type="date" name="startDate" required></div>
+              <div class="form-field"><label>Fin du stage</label><input type="date" name="endDate" required></div>
+              <div class="form-field"><label>Domaine d'études</label><input name="fieldOfStudies" required></div>
+              <div class="form-field"><label>Département</label><input name="department" required></div>
+              <div class="form-field full-width"><label>Objectifs du stage</label><input name="objectives"></div>
+              <div class="form-field full-width"><label>Compétences / compétences clés</label><input name="skills" placeholder="Séparées par des virgules"></div>
+              <div class="form-field full-width"><label>Note / remarques</label><textarea name="notes" rows="2"></textarea></div>
+              <div class="form-field"><label>Photo (optionnel)</label><input type="file" name="photo" accept="image/*"></div>
+              <div class="form-field"><label>CV / Résumé (PDF, DOC, image)</label><input type="file" name="cv" accept=".pdf,.doc,.docx,image/*"></div>
+              <div class="form-field full-width"><label>Papiers de stage (optionnel)</label><input type="file" name="internshipDocs" multiple></div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Enregistrer</button>
+                <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+              </div>
+            </form>
+        `;
+        // Country dropdown logic
+        const countries = [
+          { name: 'Tunisia', code: 'TN', flag: '🇹🇳' },
+          { name: 'France', code: 'FR', flag: '🇫🇷' },
+          { name: 'Germany', code: 'DE', flag: '🇩🇪' },
+          { name: 'Italy', code: 'IT', flag: '🇮🇹' },
+          { name: 'Spain', code: 'ES', flag: '🇪🇸' },
+          { name: 'United States', code: 'US', flag: '🇺🇸' },
+          { name: 'Canada', code: 'CA', flag: '🇨🇦' },
+          { name: 'Morocco', code: 'MA', flag: '🇲🇦' },
+          { name: 'Algeria', code: 'DZ', flag: '🇩🇿' },
+          { name: 'Egypt', code: 'EG', flag: '🇪🇬' },
+          { name: 'Turkey', code: 'TR', flag: '🇹🇷' },
+          { name: 'Libya', code: 'LY', flag: '🇱🇾' },
+          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧' },
+          { name: 'Saudi Arabia', code: 'SA', flag: '🇸🇦' },
+          { name: 'China', code: 'CN', flag: '🇨🇳' },
+          { name: 'India', code: 'IN', flag: '🇮🇳' },
+          { name: 'Japan', code: 'JP', flag: '🇯🇵' },
+          { name: 'Russia', code: 'RU', flag: '🇷🇺' },
+          { name: 'Brazil', code: 'BR', flag: '🇧🇷' },
+          { name: 'South Africa', code: 'ZA', flag: '🇿🇦' }
+        ];
+        // Tunisia first, then alphabetical
+        const sortedCountries = [countries[0], ...countries.slice(1).sort((a, b) => a.name.localeCompare(b.name))];
+        const container = document.getElementById('country-select-container');
+        let selectedCountry = null;
+        container.innerHTML = `
+          <div id="country-select-display" class="country-select-display">
+            <span id="country-select-flag" class="flag-icon" style="display:none;"></span>
+            <span id="country-select-name" style="color:var(--input-text);">Sélectionner un pays</span>
+            <span class="ml-auto text-md">&#9660;</span>
+          </div>
+          <div id="country-select-dropdown" class="country-select-dropdown"></div>
+          <input type="hidden" name="nationality" id="country-select-hidden">
+        `;
+        const display = container.querySelector('#country-select-display');
+        const dropdown = container.querySelector('#country-select-dropdown');
+        const flagSpan = container.querySelector('#country-select-flag');
+        const nameSpan = container.querySelector('#country-select-name');
+        const hiddenInput = container.querySelector('#country-select-hidden');
+        // Render dropdown
+        function renderCountryDropdown(filter = '') {
+          dropdown.innerHTML = '';
+          const searchBox = document.createElement('input');
+          searchBox.type = 'text';
+          searchBox.placeholder = 'Rechercher un pays...';
+          searchBox.className = 'country-search';
+          dropdown.appendChild(searchBox);
+          searchBox.addEventListener('input', function(e) {
+            renderCountryDropdown(e.target.value);
+          });
+          sortedCountries.filter(c => c.name.toLowerCase().startsWith(filter.toLowerCase())).forEach(c => {
+            const option = document.createElement('div');
+            option.className = 'country-option';
+            option.innerHTML = `<span class="flag-icon">${c.flag}</span> <span>${c.name}</span>`;
+            option.onclick = () => {
+              flagSpan.textContent = c.flag;
+              flagSpan.style.display = '';
+              nameSpan.textContent = c.name;
+              hiddenInput.value = c.name;
+              selectedCountry = c;
+              dropdown.style.display = 'none';
+            };
+            dropdown.appendChild(option);
+          });
+        }
+        // Show/hide dropdown
+        display.onclick = function(e) {
+          if (dropdown.style.display === 'none') {
+            renderCountryDropdown();
+            dropdown.style.display = 'block';
+          } else {
+            dropdown.style.display = 'none';
+          }
+        };
+        document.addEventListener('click', function(e) {
+          if (!container.contains(e.target)) {
+            dropdown.style.display = 'none';
+          }
+        });
+        document.getElementById('addInternForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          alert('Stagiaire ajouté (données collectées, démo).');
+          closePopup();
+        });
+      }
+      else if (type === 'supervisor') {
+        body.innerHTML = `
+            <h2>Ajouter un Superviseur</h2>
+            <form id="addSupervisorForm">
+              <div class="form-field"><label>Nom</label><input name="firstName" required></div>
+              <div class="form-field"><label>Prénom</label><input name="lastName" required></div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Enregistrer</button>
+                <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+              </div>
+            </form>
+        `;
+        document.getElementById('addSupervisorForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          alert('Superviseur ajouté (données collectées, démo).');
+          closePopup();
+        });
+      }
+      
+      else if (type === 'attestation') {
+        // Demo intern data with gender
+        const interns = [
+          { name: 'Firas Welhazi', department: 'Informatique', period: '2025-06 - 2025-08', completed: true, gender: 'male' },
+          { name: 'Sara Ben Ahmed', department: 'Finance', period: '2025-07 - 2025-09', completed: false, gender: 'female' },
+          { name: 'Omar Trabelsi', department: 'RH', period: '2025-05 - 2025-07', completed: true, gender: 'male' }
+        ];
+        const eligibleInterns = interns.filter(i => i.completed);
+        
+        body.innerHTML = `
+          <h2>Générer une Attestation</h2>
+          <form id="attestationForm" style="width:450px;">
+            <label>Choisir le stagiaire</label>
+            <select name="intern" id="internSelect" required>
+              <option value="">-- Sélectionner --</option>
+              ${eligibleInterns.map(i => `<option value="${i.name}">${i.name} (${i.department}, ${i.period})</option>`).join('')}
+            </select>
+            <div id="attestationText" style="margin:18px 0 0 0;">
+              <textarea id="attestationContent" style="width:100%; min-height:300px; padding:12px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text); font-family:'Segoe UI',sans-serif; resize:vertical; margin-top:10px;" placeholder="L'attestation sera générée ici..."></textarea>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:10px;">
+              <button type="button" class="btn primary" id="downloadAttestation" disabled>Télécharger</button>
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+            </div>
+          </form>
+        `;
+        
+        const select = document.getElementById('internSelect');
+        const downloadBtn = document.getElementById('downloadAttestation');
+        
+        select.addEventListener('change', function() {
+          const intern = eligibleInterns.find(i => i.name === select.value);
+          if (intern) {
+            const today = new Date().toLocaleDateString('fr-FR');
+            const civ = intern.gender === 'female' ? 'Mme' : 'M.';
+            const interesse = intern.gender === 'female' ? "l'intéressée" : "l'intéressé";
+            const text = `Tunis, le ${today}
+
+Objet : Attestation de Stage
+
+À qui de droit,
+
+Par la présente, nous, soussignés la Société Tunisienne de l'Électricité et du Gaz (STEG), attestons que :
+
+${civ} ${intern.name} a effectué avec succès un stage pratique au sein de notre établissement, dans le département ${intern.department}, durant la période ${intern.period}.
+
+Au cours de cette période, ${interesse} a fait preuve de sérieux, d'assiduité et d'un grand sens des responsabilités dans l'accomplissement des tâches qui lui ont été confiées.
+
+Cette attestation est délivrée à ${interesse} pour servir et valoir ce que de droit.
+
+Cordialement,
+[Nom du Superviseur]
+Département ${intern.department}
+STEG - Société Tunisienne de l'Électricité et du Gaz`;
+            
+            document.getElementById('attestationContent').value = text;
+            downloadBtn.disabled = false;
+          } else {
+            document.getElementById('attestationContent').value = '';
+            downloadBtn.disabled = true;
+          }
+        });
+        
+        downloadBtn.addEventListener('click', function() {
+          const intern = eligibleInterns.find(i => i.name === select.value);
+          if (intern) {
+            try {
+              const { jsPDF } = window.jspdf;
+              const doc = new jsPDF();
+              
+              // Set font size
+              doc.setFontSize(12);
+              
+              // Add STEG logo (would require a base64 encoded image in a real implementation)
+              // doc.addImage('logo_base64', 'JPEG', 15, 10, 40, 20);
+              
+              // Add title
+              doc.setFontSize(16);
+              doc.setFont('helvetica', 'bold');
+              doc.text('STEG - Société Tunisienne de l\'Électricité et du Gaz', 105, 20, { align: 'center' });
+              
+              // Add current date
+              const today = new Date().toLocaleDateString('fr-FR');
+              doc.setFontSize(12);
+              doc.setFont('helvetica', 'normal');
+              doc.text(`Tunis, le ${today}`, 180, 30, { align: 'right' });
+              
+              // Add subject line
+              doc.setFont('helvetica', 'bold');
+              doc.text('Objet : Attestation de Stage', 20, 45);
+              
+              // Set appropriate pronouns based on gender
+              const civ = intern.gender === 'male' ? 'M.' : 'Mlle/Mme';
+              const interesse = intern.gender === 'male' ? 'l\'intéressé' : 'l\'intéressée';
+              
+              // Add attestation content
+              doc.setFont('helvetica', 'normal');
+              let y = 60;
+              doc.text('À qui de droit,', 20, y); y += 10;
+              
+              const line1 = 'Par la présente, nous, soussignés la Société Tunisienne de l\'Électricité et du Gaz (STEG),';
+              const line2 = 'attestons que :';
+              doc.text(line1, 20, y); y += 6;
+              doc.text(line2, 20, y); y += 15;
+              
+              doc.setFont('helvetica', 'bold');
+              doc.text(`${civ} ${intern.name}`, 20, y); y += 10;
+              
+              doc.setFont('helvetica', 'normal');
+              const text1 = `a effectué avec succès un stage pratique au sein de notre établissement, dans le département`;
+              const text2 = `${intern.department}, durant la période ${intern.period}.`;
+              doc.text(text1, 20, y); y += 6;
+              doc.text(text2, 20, y); y += 15;
+              
+              const line3 = `Au cours de cette période, ${interesse} a fait preuve de sérieux, d'assiduité et d'un`;
+              const line4 = `grand sens des responsabilités dans l'accomplissement des tâches qui lui ont été confiées.`;
+              doc.text(line3, 20, y); y += 6;
+              doc.text(line4, 20, y); y += 15;
+              
+              const line5 = `Cette attestation est délivrée à ${interesse} pour servir et valoir ce que de droit.`;
+              doc.text(line5, 20, y); y += 20;
+              
+              doc.text('Cordialement,', 20, y); y += 15;
+              doc.text('[Nom du Superviseur]', 20, y); y += 6;
+              doc.text(`Département ${intern.department}`, 20, y); y += 6;
+              doc.text('STEG - Société Tunisienne de l\'Électricité et du Gaz', 20, y);
+              
+              // Save the PDF
+              doc.save(`attestation_${intern.name.replace(/\s+/g, '_')}.pdf`);
+              
+              // Alert and redirect to attestations page
+              alert('Attestation générée avec succès en format PDF! Redirection vers la page des attestations.');
+              setTimeout(() => {
+                window.location.href = 'attestations.html';
+              }, 1000);
+            } catch (error) {
+              console.error('Error generating PDF:', error);
+              
+              // Fallback to text file if PDF generation fails
+              const attestation = document.getElementById('attestationContent').value;
+              const blob = new Blob([attestation], { type: 'text/plain' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `attestation_${intern.name.replace(/\s+/g, '_')}.txt`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              alert('PDF generation failed. Text file downloaded as fallback. Redirecting to attestations page...');
+              setTimeout(() => {
+                window.location.href = 'attestations.html';
+              }, 1000);
+            }
+          }
+        });
+      }
+      
+      document.getElementById('popup-overlay').classList.remove('hidden');
+    }
+    
+    // Use the closePopup function from common.js
+
+    function logout(){
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({action: 'logout'}) 
+      })
+      .then(() => {
+        window.location.href = '../index.html';
+      })
+      .catch(() => {
+        window.location.href = '../index.html';
+      });
+    }
+    
+  // No theme initialization
+  </script>
+</body>
+</html>

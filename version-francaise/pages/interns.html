@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Liste des Stagiaires - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+      <button class="btn primary small" onclick="openPopup('intern')">+ Ajouter</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Liste des Stagiaires</h1>
+      <p class="subtitle">Consultez, modifiez ou supprimez les stagiaires inscrits</p>
+    </section>
+    <section>
+  <table class="data-table" data-enhanced data-page-size="10">
+        <thead>
+          <tr style="background:var(--steg-blue);color:#fff;">
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Département</th>
+            <th>Période</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="interns-list">
+          <!-- Demo row -->
+          <tr>
+            <td>Firas Welhazi</td>
+            <td>firas.welhazi@email.com</td>
+            <td>Informatique</td>
+            <td>2025-06 - 2025-08</td>
+            <td>
+              <button class="btn outline small" onclick="editIntern(this)">Modifier</button>
+              <button class="btn danger small" onclick="deleteIntern(this)">Supprimer</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <div id="popup-overlay" class="popup hidden">
+    <div class="popup-panel">
+      <button class="popup-close" onclick="closePopup()">&times;</button>
+      <div id="popup-body"></div>
+    </div>
+  </div>
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/table-utils.js"></script>
+  <script>
+    // Initialize theme
+    // No theme initialization
+    // Popup logic (reuse from dashboard)
+    function openPopup(type, row) {
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+      if (type === 'intern') {
+        body.innerHTML = `
+          <h2>Ajouter un Stagiaire</h2>
+          <form id="addInternForm" class="form-grid">
+            <div class="form-field"><label>Nom complet</label><input name="name" required></div>
+            <div class="form-field"><label>Email</label><input type="email" name="email" required></div>
+            <div class="form-field"><label>Département</label><input name="department" required></div>
+            <div class="form-field"><label>Période</label><input name="period" placeholder="ex: 2025-06 - 2025-08"></div>
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Enregistrer</button>
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+            </div>
+          </form>
+        `;
+        document.getElementById('addInternForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          alert('Stagiaire ajouté (demo).');
+          closePopup();
+        });
+      } else if (type === 'edit' && row) {
+        // Get current values from row
+        const tds = row.querySelectorAll('td');
+        body.innerHTML = `
+          <h2>Modifier le Stagiaire</h2>
+          <form id="editInternForm" class="form-grid">
+            <div class="form-field"><label>Nom complet</label><input name="name" value="${tds[0].textContent}" required></div>
+            <div class="form-field"><label>Email</label><input type="email" name="email" value="${tds[1].textContent}" required></div>
+            <div class="form-field"><label>Département</label><input name="department" value="${tds[2].textContent}" required></div>
+            <div class="form-field"><label>Période</label><input name="period" value="${tds[3].textContent}"></div>
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Enregistrer</button>
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+            </div>
+          </form>
+        `;
+        document.getElementById('editInternForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          alert('Stagiaire modifié (demo).');
+          closePopup();
+        });
+      }
+      document.getElementById('popup-overlay').classList.remove('hidden');
+    }
+    function closePopup() {
+      document.getElementById('popup-overlay').classList.add('hidden');
+    }
+    // Edit intern
+    function editIntern(btn) {
+      const row = btn.closest('tr');
+      openPopup('edit', row);
+    }
+    // Delete intern
+    function deleteIntern(btn) {
+      if (confirm('Supprimer ce stagiaire ? (demo)')) {
+        btn.closest('tr').remove();
+      }
+    }
+  </script>
+</body>
+</html>

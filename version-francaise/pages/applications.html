@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Candidatures – STEG</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="../assets/images/STEG-logo.png" class="logo" alt="STEG"> STEG – Candidatures</div>
+    <div class="top-actions">
+      <button class="btn small" title="Paramètres" onclick="window.location.href='settings-admin.html'">⚙️</button>
+      <button class="btn danger small" title="Déconnexion" onclick="logout()">⎋</button>
+    </div>
+  </header>
+  <main class="admin-page">
+    <section class="page-header">
+      <h1>Candidatures</h1>
+      <p class="subtitle">Examiner et traiter les demandes de stage</p>
+    </section>
+    <section>
+      <table class="data-table" data-enhanced data-page-size="10">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Statut</th>
+            <th>Soumise le</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="apps-body"></tbody>
+      </table>
+    </section>
+  </main>
+  <div id="popup-overlay" class="popup hidden"><div class="popup-panel"><button class="popup-close" onclick="closePopup()">&times;</button><div id="popup-body"></div></div></div>
+  <script src="../assets/js/table-utils.js"></script>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    async function fetchApps(){
+      const res = await fetch('../database/api.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'list_applications'})});
+      const j = await res.json();
+      if (!j.success) { alert(j.message||'Erreur'); return; }
+      const tb = document.getElementById('apps-body');
+      tb.innerHTML = '';
+      (j.applications||[]).forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${a.id}</td><td>${a.full_name}</td><td>${a.email}</td><td>${a.status}</td><td>${a.created_at}</td>
+          <td>
+            <button class="btn small" onclick="review(${a.id}, 'accepted')">Accepter</button>
+            <button class="btn small danger" onclick="review(${a.id}, 'rejected')">Rejeter</button>
+          </td>`;
+        tb.appendChild(tr);
+      });
+      new TableUtils(document.querySelector('table.data-table'), {pageSize: 10}).init();
+    }
+    async function review(id, decision){
+      const notes = prompt('Notes (optionnel):');
+      const paperwork_verified = decision==='accepted' ? (confirm('Paperasse vérifiée ? OK=Oui, Annuler=Non')?1:0) : undefined;
+      const res = await fetch('../database/api.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'review_application', id, decision, notes, paperwork_verified})});
+      const j = await res.json();
+      alert(j.message|| (j.success?'OK':'Erreur'));
+      fetchApps();
+    }
+    async function logout(){
+      try{ await fetch('../database/api.php',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'logout'})}); }catch(e){}
+      window.location.href='../index.html';
+    }
+    document.addEventListener('DOMContentLoaded', fetchApps);
+  </script>
+</body>
+</html>

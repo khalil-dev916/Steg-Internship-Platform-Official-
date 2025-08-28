@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Évaluations des Stagiaires - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+      <button class="btn primary small" onclick="openPopup('new-eval')">+ Nouvelle Évaluation</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Évaluations des Stagiaires</h1>
+      <p class="subtitle">Suivez et enregistrez les évaluations des stagiaires par leurs superviseurs</p>
+    </section>
+
+    <section class="search-filters">
+      <div class="search-box">
+        <input type="text" id="search-evals" placeholder="Rechercher par nom de stagiaire..." onkeyup="filterEvals()">
+        <button class="btn small" onclick="filterEvals()">🔍</button>
+      </div>
+      <div class="filter-options">
+        <label>Département:</label>
+        <select id="filter-dept" onchange="filterEvals()">
+          <option value="">Tous</option>
+          <option value="Informatique">Informatique</option>
+          <option value="Finance">Finance</option>
+          <option value="Ressources Humaines">Ressources Humaines</option>
+        </select>
+
+        <label>Note minimale:</label>
+        <select id="filter-min" onchange="filterEvals()">
+          <option value="">--</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <table class="data-table" data-enhanced data-page-size="10">
+        <thead>
+          <tr>
+            <th>Stagiaire</th>
+            <th>Département</th>
+            <th>Superviseur</th>
+            <th>Note (/20)</th>
+            <th>Date</th>
+            <th>Appréciation</th>
+          </tr>
+        </thead>
+        <tbody id="evals-body">
+          <tr>
+            <td>Firas Welhazi</td>
+            <td>Informatique</td>
+            <td>Samira Ben Salah</td>
+            <td>16</td>
+            <td>2025-08-10</td>
+            <td>Très bon travail, sérieux et autonome.</td>
+          </tr>
+          <tr>
+            <td>Ahmed Ben Salah</td>
+            <td>Finance</td>
+            <td>Ali Trabelsi</td>
+            <td>14</td>
+            <td>2025-08-08</td>
+            <td>Bon potentiel, à encourager sur la rigueur.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div id="popup-overlay" class="popup hidden">
+    <div class="popup-panel">
+      <button class="popup-close" onclick="closePopup()">&times;</button>
+      <div id="popup-body"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/table-utils.js"></script>
+  <script>
+    function filterEvals() {
+      const q = document.getElementById('search-evals').value.toLowerCase();
+      const dept = document.getElementById('filter-dept').value.toLowerCase();
+      const min = Number(document.getElementById('filter-min').value || 0);
+      document.querySelectorAll('#evals-body tr').forEach(tr => {
+        const name = tr.children[0].textContent.toLowerCase();
+        const d = tr.children[1].textContent.toLowerCase();
+        const note = Number(tr.children[3].textContent.trim() || 0);
+        const match = name.includes(q) && (!dept || d.includes(dept)) && (note >= min);
+        tr.style.display = match ? '' : 'none';
+      });
+    }
+
+    function openPopup(type, row){
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+      if (type === 'new-eval' || type === 'edit'){
+        const isEdit = type === 'edit';
+        const title = isEdit ? 'Modifier une Évaluation' : 'Nouvelle Évaluation';
+        const values = isEdit ? {
+          name: row.children[0].textContent,
+          dept: row.children[1].textContent,
+          sup: row.children[2].textContent,
+          note: row.children[3].textContent,
+          date: row.children[4].textContent,
+          appr: row.children[5].textContent
+        } : { name:'', dept:'', sup:'', note:'', date: new Date().toISOString().slice(0,10), appr:'' };
+        body.innerHTML = `
+          <h2>${title}</h2>
+          <form id="evalForm" class="form-grid">
+            <div class="form-field"><label>Stagiaire</label><input name="name" value="${values.name}" required></div>
+            <div class="form-field"><label>Département</label><input name="dept" value="${values.dept}" required></div>
+            <div class="form-field"><label>Superviseur</label><input name="sup" value="${values.sup}" required></div>
+            <div class="form-field"><label>Note (/20)</label><input name="note" type="number" min="0" max="20" value="${values.note}" required></div>
+            <div class="form-field"><label>Date</label><input name="date" type="date" value="${values.date}" required></div>
+            <div class="form-field full-width"><label>Appréciation</label><textarea name="appr" rows="3">${values.appr}</textarea></div>
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Enregistrer</button>
+              <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+            </div>
+          </form>
+        `;
+        document.getElementById('evalForm').addEventListener('submit', function(e){
+          e.preventDefault();
+          const form = new FormData(e.target);
+          const name = form.get('name');
+          const dept = form.get('dept');
+          const sup = form.get('sup');
+          const note = form.get('note');
+          const date = form.get('date');
+          const appr = form.get('appr');
+          if (isEdit && row){
+            row.children[0].textContent = name;
+            row.children[1].textContent = dept;
+            row.children[2].textContent = sup;
+            row.children[3].textContent = note;
+            row.children[4].textContent = date;
+            row.children[5].textContent = appr;
+          } else {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${name}</td><td>${dept}</td><td>${sup}</td><td>${note}</td><td>${date}</td><td>${appr}</td>`;
+            document.getElementById('evals-body').appendChild(tr);
+          }
+          closePopup();
+          alert('Évaluation enregistrée (démo).');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

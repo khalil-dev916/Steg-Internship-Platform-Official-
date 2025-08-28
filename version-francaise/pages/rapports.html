@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rapports Soumis - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <script src="../assets/js/common.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+      
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Rapports Soumis</h1>
+      <p class="subtitle">Groupés par année → mois → jour</p>
+    </section>
+    <section id="reports-container" class="data-table" style="padding: 16px;"></section>
+  </div>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchReports();
+    });
+
+    async function fetchReports() {
+      try {
+        const res = await fetch('../database/api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_reports' })
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || 'Erreur de chargement');
+        renderReports(json.reports || []);
+      } catch (e) {
+        document.getElementById('reports-container').innerHTML = `<p style="color:var(--danger-btn-bg)">${e.message}</p>`;
+      }
+    }
+
+    function renderReports(items) {
+      // Group by year -> month -> day
+      const groups = {};
+      for (const r of items) {
+        const d = new Date(r.submission_date);
+        if (isNaN(d)) continue;
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,'0');
+        const day = String(d.getDate()).padStart(2,'0');
+        groups[y] = groups[y] || {};
+        groups[y][m] = groups[y][m] || {};
+        groups[y][m][day] = groups[y][m][day] || [];
+        groups[y][m][day].push(r);
+      }
+      const container = document.getElementById('reports-container');
+      const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+      const years = Object.keys(groups).sort((a,b)=>b-a);
+      if (years.length === 0) {
+        container.innerHTML = '<p>Aucun rapport soumis.</p>';
+        return;
+      }
+      let html = '';
+      for (const y of years) {
+        html += `<h3>${y}</h3>`;
+        const monthsKeys = Object.keys(groups[y]).sort((a,b)=>b-a);
+        for (const m of monthsKeys) {
+          const daysKeys = Object.keys(groups[y][m]).sort((a,b)=>b-a);
+          if (daysKeys.length === 0) continue;
+          html += `<h4>${months[parseInt(m,10)-1]}</h4>`;
+          html += '<ul>';
+          for (const d of daysKeys) {
+            for (const r of groups[y][m][d]) {
+              const name = `${r.first_name} ${r.last_name}`;
+              html += `<li>${y}-${m}-${d} — ${name} — ${r.title || 'Rapport'}</li>`;
+            }
+          }
+          html += '</ul>';
+        }
+      }
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

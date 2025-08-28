@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Documents - STEG</title>
+	<link rel="stylesheet" href="../assets/css/styles.css">
+		<script src="../assets/js/common.js"></script>
+		<script src="../assets/js/table-utils.js"></script>
+</head>
+<body>
+	<header class="topbar">
+		<div class="brand">
+			<img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+			STEG - Gestion Stagiaires
+		</div>
+		<div class="top-actions">
+			<button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+			
+		</div>
+	</header>
+	<div class="admin-page">
+		<section class="page-header">
+			<h1>Documents</h1>
+			<p class="subtitle">Téléversez et gérez les documents liés aux stages</p>
+		</section>
+		<section class="search-filters">
+			<div class="search-box">
+				<input placeholder="Rechercher des documents...">
+				<button class="btn">Rechercher</button>
+			</div>
+			<div class="filter-options">
+				<label>Type</label>
+				<select>
+					<option>Tous</option>
+					<option>Rapports</option>
+					<option>Attestations</option>
+					<option>Autres</option>
+				</select>
+			</div>
+		</section>
+		<section>
+			<table class="data-table" data-enhanced data-page-size="10">
+				<thead>
+					<tr>
+						<th>Nom</th>
+						<th>Type</th>
+						<th>Propriétaire</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Rapport-hebdo-firas.pdf</td>
+						<td>Rapport</td>
+						<td>Firas Welhazi</td>
+						<td>2025-08-12</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+	</div>
+	<script>window.addEventListener('DOMContentLoaded', setupThemeToggle);</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tableau de Bord Superviseur - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <!-- Include Chart.js for statistics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" title="Paramètres" onclick="window.location.href='settings-supervisor.html'">⚙️</button>
+      <button class="btn danger small" title="Déconnexion" id="logout-btn">⎋</button>
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Tableau de Bord Superviseur</h1>
+      <p class="subtitle">Gérez les stagiaires sous votre supervision</p>
+    </section>
+    <section class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-number" id="stat-interns">0</div>
+        <div class="stat-label">Stagiaires</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-number" id="stat-attestations">0</div>
+        <div class="stat-label">Attestations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-number" id="stat-active">0</div>
+        <div class="stat-label">Stages Actifs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number" id="stat-completed">0</div>
+        <div class="stat-label">Stages Terminés</div>
+      </div>
+    </section>
+    <section class="actions-grid">
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">🎓</div>
+          <h3>Mes Stagiaires</h3>
+        </div>
+        <p>Consultez la liste des stagiaires sous votre supervision</p>
+        <div class="card-actions">
+          <button class="btn outline" id="view-interns-btn">Voir tous</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📝</div>
+          <h3>Attestations</h3>
+        </div>
+        <p>Générez des attestations pour les stagiaires ayant terminé</p>
+        <div class="card-actions">
+          <button class="btn outline" id="view-attestations-btn">Voir toutes</button>
+          <button class="btn primary" id="new-attestation-btn">Générer</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">📊</div>
+          <h3>Rapports</h3>
+        </div>
+        <p>Consultez et validez les rapports soumis par les stagiaires</p>
+        <div class="card-actions">
+          <button class="btn outline" id="view-reports-btn">Voir tous</button>
+        </div>
+      </article>
+      <article class="action-card">
+        <div class="action-head">
+          <div class="action-icon">👤</div>
+          <h3>Mon Profil</h3>
+        </div>
+        <p>Consultez et modifiez vos informations personnelles</p>
+        <div class="card-actions">
+          <button class="btn outline" id="view-profile-btn">Voir profil</button>
+        </div>
+      </article>
+    </section>
+    <section class="recent-activity">
+      <h3>Activité Récente</h3>
+      <div class="activity-list" id="activity-list">
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text">Chargement des activités récentes...</div>
+        </div>
+      </div>
+    </section>
+    <section class="stats-section">
+      <h3>Répartition des Stagiaires</h3>
+      <div class="chart-container">
+        <canvas id="internsChart" width="400" height="200"></canvas>
+      </div>
+    </section>
+  </div>
+  <div id="popup-overlay" class="popup hidden">
+    <div class="popup-panel">
+      <button class="popup-close" onclick="closePopup()">&times;</button>
+      <div id="popup-body"></div>
+    </div>
+  </div>
+  <script src="../assets/js/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+  // No theme initialization
+      
+      // Check authentication
+      checkAuthentication('supervisor');
+      
+      // Set up logout button
+      document.getElementById('logout-btn').addEventListener('click', logout);
+      
+      // Set up buttons
+      document.getElementById('view-interns-btn').addEventListener('click', function() {
+        window.location.href = 'supervisor-interns.html';
+      });
+      
+      document.getElementById('view-attestations-btn').addEventListener('click', function() {
+        window.location.href = 'supervisor-attestations.html';
+      });
+      
+      document.getElementById('new-attestation-btn').addEventListener('click', function() {
+        openPopup('attestation');
+      });
+      
+      document.getElementById('view-reports-btn').addEventListener('click', function() {
+        alert('Fonctionnalité à venir: Rapports de stage');
+      });
+      
+      document.getElementById('view-profile-btn').addEventListener('click', function() {
+        alert('Fonctionnalité à venir: Profil utilisateur');
+      });
+      
+      // Load dashboard data
+      loadDashboardData();
+    });
+    
+    // Check if user is authenticated and has correct role
+    function checkAuthentication(requiredRole) {
+      // Add protection against redirect loops
+      const redirectAttempt = sessionStorage.getItem('dashboardRedirectAttempt');
+      const now = new Date().getTime();
+      
+      // If we've tried to redirect recently (within last 2 seconds), don't try again
+      if (redirectAttempt && (now - parseInt(redirectAttempt)) < 2000) {
+        console.log('Preventing dashboard redirect loop');
+        sessionStorage.removeItem('dashboardRedirectAttempt'); // Clear for next attempt
+        return; // Stop execution and don't attempt redirect
+      }
+      
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'check_session'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          // Not logged in, redirect to login page
+          window.location.href = '../index.html';
+          return;
+        }
+        
+        if (data.user_type !== requiredRole) {
+          // Record this redirect attempt
+          sessionStorage.setItem('dashboardRedirectAttempt', now.toString());
+          // Wrong user type, redirect to appropriate dashboard
+          switch(data.user_type) {
+            case 'admin':
+              window.location.href = 'admin-dashboard.html';
+              break;
+            case 'intern':
+              window.location.href = 'intern-dashboard.html';
+              break;
+            case 'director':
+              window.location.href = 'director-dashboard.html';
+              break;
+          }
+          return;
+        }
+        
+        // User is authenticated and has correct role
+        document.getElementById('user-name').textContent = data.full_name;
+      })
+      .catch(error => {
+        console.error('Authentication check error:', error);
+        window.location.href = '../index.html';
+      });
+    }
+    
+    // Logout function
+    function logout() {
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'logout'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.href = '../index.html';
+      })
+      .catch(error => {
+        console.error('Logout error:', error);
+        window.location.href = '../index.html';
+      });
+    }
+    
+    // Load dashboard data
+    function loadDashboardData() {
+      // Get interns data
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get_interns'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.error('Failed to load interns:', data.message);
+          return;
+        }
+        
+        // Update stats
+        const interns = data.interns;
+        document.getElementById('stat-interns').textContent = interns.length;
+        
+        // Count active and completed internships
+        const now = new Date();
+        let active = 0;
+        let completed = 0;
+        
+        interns.forEach(intern => {
+          const endDate = new Date(intern.end_date);
+          if (endDate < now) {
+            completed++;
+          } else {
+            active++;
+          }
+        });
+        
+        document.getElementById('stat-active').textContent = active;
+        document.getElementById('stat-completed').textContent = completed;
+        
+        // Create chart
+        createInternsChart(interns);
+        
+        // Update activity list with recent interns
+        updateActivityList(interns);
+      })
+      .catch(error => {
+        console.error('Error loading interns data:', error);
+      });
+      
+      // Get attestation stats
+      fetch('../database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'get_attestation_stats'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.error('Failed to load attestation stats:', data.message);
+          return;
+        }
+        
+        document.getElementById('stat-attestations').textContent = data.stats.total;
+      })
+      .catch(error => {
+        console.error('Error loading attestation stats:', error);
+      });
+    }
+    
+    // Create interns chart
+    function createInternsChart(interns) {
+      // Get status distribution
+      const now = new Date();
+      const statusData = {
+        active: 0,
+        completed: 0
+      };
+      
+      interns.forEach(intern => {
+        const endDate = new Date(intern.end_date);
+        if (endDate < now) {
+          statusData.completed++;
+        } else {
+          statusData.active++;
+        }
+      });
+      
+      const ctx = document.getElementById('internsChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Stages Actifs', 'Stages Terminés'],
+          datasets: [{
+            data: [statusData.active, statusData.completed],
+            backgroundColor: [
+              'rgba(54, 162, 235, 0.7)',
+              'rgba(75, 192, 192, 0.7)'
+            ],
+            borderColor: [
+              'rgba(54, 162, 235, 1)',
+              'rgba(75, 192, 192, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Update activity list
+    function updateActivityList(interns) {
+      const activityList = document.getElementById('activity-list');
+      activityList.innerHTML = '';
+      
+      // Sort interns by start date (newest first)
+      interns.sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+      
+      // Show the 5 most recent interns
+      const recentInterns = interns.slice(0, 5);
+      
+      if (recentInterns.length === 0) {
+        activityList.innerHTML = `
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div class="activity-text">Aucun stagiaire trouvé</div>
+          </div>
+        `;
+        return;
+      }
+      
+      recentInterns.forEach(intern => {
+        const startDate = new Date(intern.start_date);
+        const endDate = new Date(intern.end_date);
+        const now = new Date();
+        
+        let status;
+        if (endDate < now) {
+          status = '<span class="status-tag completed">Terminé</span>';
+        } else if (startDate > now) {
+          status = '<span class="status-tag upcoming">À venir</span>';
+        } else {
+          status = '<span class="status-tag active">En cours</span>';
+        }
+        
+        activityList.innerHTML += `
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div class="activity-text">
+              <strong>${intern.first_name} ${intern.last_name}</strong> - ${intern.university} ${status}
+              <div class="muted">${intern.start_date} à ${intern.end_date}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+    
+    // Open popup
+    function openPopup(type) {
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+      
+      if (type === 'attestation') {
+        // Load interns for attestation generation
+        fetch('../database/api.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'get_interns'
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            body.innerHTML = `<h2>Erreur</h2><p>${data.message}</p>`;
+            return;
+          }
+          
+          const interns = data.interns;
+          const now = new Date();
+          
+          // Filter completed internships
+          const completedInterns = interns.filter(intern => {
+            const endDate = new Date(intern.end_date);
+            return endDate < now;
+          });
+          
+          if (completedInterns.length === 0) {
+            body.innerHTML = `
+              <h2>Générer une Attestation</h2>
+              <p>Aucun stagiaire ayant terminé son stage n'est disponible.</p>
+            `;
+            return;
+          }
+          
+          body.innerHTML = `
+            <h2>Générer une Attestation</h2>
+            <form id="attestationForm">
+              <div class="form-field">
+                <label>Stagiaire</label>
+                <select id="intern-select" required>
+                  <option value="">-- Sélectionner un stagiaire --</option>
+                  ${completedInterns.map(intern => `
+                    <option value="${intern.id}">${intern.first_name} ${intern.last_name} (${intern.department}, ${intern.start_date} à ${intern.end_date})</option>
+                  `).join('')}
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Aperçu de l'attestation</label>
+                <div id="attestation-preview" class="attestation-preview">Sélectionnez un stagiaire pour voir l'aperçu</div>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn outline" onclick="closePopup()">Annuler</button>
+                <button type="button" id="download-attestation" class="btn primary" disabled>Télécharger</button>
+              </div>
+            </form>
+          `;
+          
+          // Handle intern selection for preview
+          document.getElementById('intern-select').addEventListener('change', function() {
+            const internId = this.value;
+            if (!internId) {
+              document.getElementById('attestation-preview').innerHTML = 'Sélectionnez un stagiaire pour voir l\'aperçu';
+              document.getElementById('download-attestation').disabled = true;
+              return;
+            }
+            
+            const intern = completedInterns.find(i => i.id == internId);
+            if (intern) {
+              const gender = intern.first_name.endsWith('a') ? 'F' : 'M';
+              const civ = gender === 'F' ? 'Mlle/Mme' : 'M.';
+              const interesse = gender === 'F' ? 'l\'intéressée' : 'l\'intéressé';
+              
+              document.getElementById('attestation-preview').innerHTML = `
+                <div class="attestation-content">
+                  <h3>Attestation de Stage</h3>
+                  <p>À qui de droit,</p>
+                  <p>Par la présente, nous, soussignés la Société Tunisienne de l'Électricité et du Gaz (STEG), attestons que :</p>
+                  <p><strong>${civ} ${intern.first_name} ${intern.last_name}</strong> a effectué avec succès un stage pratique au sein de notre établissement, dans le département <strong>${intern.department}</strong>, durant la période <strong>du ${intern.start_date} au ${intern.end_date}</strong>.</p>
+                  <p>Au cours de cette période, ${interesse} a fait preuve de sérieux, d'assiduité et d'un grand sens des responsabilités dans l'accomplissement des tâches qui lui ont été confiées.</p>
+                  <p>Cette attestation est délivrée à ${interesse} pour servir et valoir ce que de droit.</p>
+                  <p>Cordialement,<br>
+                  [Nom du Superviseur]<br>
+                  Département ${intern.department}<br>
+                  STEG - Société Tunisienne de l'Électricité et du Gaz</p>
+                </div>
+              `;
+              
+              document.getElementById('download-attestation').disabled = false;
+            }
+          });
+          
+          // Handle attestation download
+          document.getElementById('download-attestation').addEventListener('click', function() {
+            alert('Attestation téléchargée (fonctionnalité simulée)');
+            closePopup();
+          });
+        })
+        .catch(error => {
+          console.error('Error loading interns for attestation:', error);
+          body.innerHTML = `<h2>Erreur</h2><p>Impossible de charger les données des stagiaires.</p>`;
+        });
+      }
+      
+      document.getElementById('popup-overlay').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

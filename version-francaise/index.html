@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - STEG Gestion des Stagiaires</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    .test-accounts-section {
+      margin-top: 20px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+    .test-accounts-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .test-accounts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .test-account-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      flex: 1;
+      min-width: 200px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .test-account-card:hover {
+      border-color: #1976d2;
+      background-color: #f0f8ff;
+    }
+    .test-account-card h4 {
+      margin: 0 0 5px 0;
+      color: #1976d2;
+    }
+    .test-account-card .account-detail {
+      margin: 3px 0;
+      font-size: 14px;
+    }
+    .test-account-card .copy-hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #555;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar topbar-login">
+    <div class="brand">
+      <img src="assets/images/STEG-logo.png" alt="STEG Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions"></div>
+  </header>
+  <div class="login-container">
+    <div class="login-box modern-login">
+      <div class="login-header">
+        <img src="assets/images/STEG-logo.png" alt="STEG Logo" class="login-logo">
+        <h2>Connexion au Système</h2>
+        <div id="user-type-indicator">Détection automatique du type d'utilisateur</div>
+      </div>
+      <div id="login-message" class="alert hidden"></div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="Entrez votre email">
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" name="password" required placeholder="Entrez votre mot de passe">
+        </div>
+        <button type="submit" class="btn primary login-btn">Se connecter</button>
+      </form>
+      <div class="login-footer">
+        <span class="login-help">Mot de passe oublié ? Contactez l'administration pour réinitialisation.</span>
+      </div>
+      
+      <div class="test-accounts-section">
+        <div class="test-accounts-title">Comptes de test (cliquez pour remplir automatiquement)</div>
+        <div class="test-accounts-container" id="test-accounts-container">
+          <!-- Test accounts will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="assets/js/common.js"></script>
+  <script src="utils/comptes-test.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load test accounts
+      loadTestAccounts();
+      
+      // Check if already logged in
+      checkSession();
+      
+      // Setup login form
+      document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Connexion en cours...';
+        
+        // Send login request
+        fetch('database/api.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'login',
+            email: email,
+            password: password
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+          
+          if (data.success) {
+            showLoginMessage(`Bienvenue, ${data.full_name}! Redirection en cours...`, 'success');
+            
+            // Redirect based on user type
+            setTimeout(() => {
+              switch(data.user_type) {
+                case 'admin':
+                  window.location.href = 'dashboards/admin-dashboard.html';
+                  break;
+                case 'director':
+                  window.location.href = 'dashboards/director-dashboard.html';
+                  break;
+                case 'supervisor':
+                  window.location.href = 'dashboards/supervisor-dashboard.html';
+                  break;
+                case 'intern':
+                  window.location.href = 'dashboards/intern-dashboard.html';
+                  break;
+                default:
+                  showLoginMessage('Erreur: Type d\'utilisateur inconnu', 'error');
+              }
+            }, 1000);
+          } else {
+            showLoginMessage(data.message, 'error');
+          }
+        })
+        .catch(error => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+          showLoginMessage('Erreur de connexion au serveur', 'error');
+          console.error('Login error:', error);
+        });
+      });
+    });
+    
+    // Load test accounts on the login page
+    function loadTestAccounts() {
+      const container = document.getElementById('test-accounts-container');
+      
+      for (const [role, account] of Object.entries(testAccounts)) {
+        const accountCard = document.createElement('div');
+        accountCard.className = 'test-account-card';
+        accountCard.innerHTML = `
+          <h4>${role.charAt(0).toUpperCase() + role.slice(1)}</h4>
+          <div class="account-detail"><strong>Email:</strong> ${account.email}</div>
+          <div class="account-detail"><strong>Mot de passe:</strong> ${account.password}</div>
+          <div class="account-detail"><strong>Rôle:</strong> ${account.description}</div>
+          <div class="copy-hint">Cliquez pour remplir automatiquement</div>
+        `;
+        
+        accountCard.addEventListener('click', function() {
+          document.getElementById('email').value = account.email;
+          document.getElementById('password').value = account.password;
+        });
+        
+        container.appendChild(accountCard);
+      }
+    }
+    
+    // Check if user is already logged in
+    function checkSession() {
+      // Add protection against redirect loops
+      const redirectAttempt = sessionStorage.getItem('redirectAttempt');
+      const now = new Date().getTime();
+      
+      // If we've tried to redirect recently (within last 2 seconds), don't try again
+      if (redirectAttempt && (now - parseInt(redirectAttempt)) < 2000) {
+        console.log('Preventing redirect loop');
+        sessionStorage.removeItem('redirectAttempt'); // Clear for next attempt
+        return; // Stop execution and don't attempt redirect
+      }
+
+      fetch('database/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'check_session'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.user_type) {
+          // Record this redirect attempt
+          sessionStorage.setItem('redirectAttempt', now.toString());
+          
+          // User is already logged in, redirect
+          switch(data.user_type) {
+            case 'admin':
+              window.location.href = 'dashboards/admin-dashboard.html';
+              break;
+            case 'supervisor': window.location.href = 'dashboards/supervisor-dashboard.html'; break;
+            case 'intern': window.location.href = 'dashboards/intern-dashboard.html'; break;
+            case 'director': window.location.href = 'dashboards/director-dashboard.html'; break;
+            default: 
+              console.warn('Unknown user type:', data.user_type);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Session check error:', error);
+      });
+    }
+    
+    // Display login messages
+    function showLoginMessage(message, type) {
+      const messageBox = document.getElementById('login-message');
+      messageBox.textContent = message;
+      messageBox.className = `alert ${type}`;
+      messageBox.classList.remove('hidden');
+      
+      if (type === 'success') {
+        messageBox.style.backgroundColor = '#4caf50';
+      } else {
+        messageBox.style.backgroundColor = '#f44336';
+      }
+    }
+  </script>
+</body>
+</html>

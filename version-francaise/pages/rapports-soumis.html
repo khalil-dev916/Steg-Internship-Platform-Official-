@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rapports Soumis - STEG</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <script src="../assets/js/common.js"></script>
+  <script>window.addEventListener('DOMContentLoaded', setupThemeToggle);</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/images/STEG-logo.png" alt="Company Logo" class="logo">
+      STEG - Gestion Stagiaires
+    </div>
+    <div class="top-actions">
+      <button class="btn small" onclick="window.location.href='admin-dashboard.html'">Tableau de Bord</button>
+      
+    </div>
+  </header>
+  <div class="admin-page">
+    <section class="page-header">
+      <h1>Rapports Soumis</h1>
+      <p class="subtitle">Liste des stagiaires ayant soumis des rapports, groupée par date</p>
+    </section>
+    <section id="reports-grouped">
+      <!-- Placeholder demo structure -->
+      <div class="data-table" style="padding:16px">
+        <h3>2025</h3>
+        <h4>Août</h4>
+        <ul>
+          <li>12 — Firas Welhazi — Rapport hebdomadaire</li>
+          <li>10 — Samira Khedher — Rapport de mi-stage</li>
+        </ul>
+        <h4>Juillet</h4>
+        <ul>
+          <li>28 — Ahmed Ben Salah — Rapport hebdomadaire</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+  <script>
+    // TODO: Pull from database via API and render by year>month>day
+  </script>
+</body>
+</html>
