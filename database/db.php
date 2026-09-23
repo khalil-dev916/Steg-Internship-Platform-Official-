@@ -252,7 +252,7 @@ function checkLoginByEmail($email, $password) {
             'username' => $user['username'],
             'full_name' => $user['full_name'],
             'email' => $user['email'],
-            'department' => $user['department'],
+            'department' => $user['department'] ?? null,
             // onboarding removed
         ];
     } else {
